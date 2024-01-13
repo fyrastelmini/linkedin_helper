@@ -25,7 +25,7 @@ def extract_div_content(url, div_class):
             job_title = target_div.find('h1', class_='top-card-layout__title').text.strip().split('Login & Sign Up')[0]
             company_name = target_div.find('a', class_='topcard__org-name-link').text.strip()
             location = target_div.find('span', class_='topcard__flavor--bullet').text.strip()
-            return({'job_title': job_title, 'company_name': company_name, 'location': location})
+            return({'job_title': job_title, 'company_name': company_name, 'location': location,'URL': url})
         else:
             print(f"Div with class '{div_class}' not found on the page.")
     else:
@@ -42,7 +42,7 @@ def update_data():
     # Extract information from the URL
     div_class = "top-card-layout__entity-info-container flex flex-wrap papabear:flex-nowrap"
     text = extract_div_content(url, div_class)
-    text['URL'] = url
+    #text['URL'] = url
 
     # Load existing DataFrame or create a new one
     if os.path.exists('data.csv'):
