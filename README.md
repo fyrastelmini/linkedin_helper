@@ -28,9 +28,9 @@ Run the app locally:
 make run
 ```
 
-Deploy using the Dockerfile:
+Build using the Dockerfile:
 ```bash
-make deploy
+make build
 ```
 
 Linting, formatting and testing are also present within the Makefile
