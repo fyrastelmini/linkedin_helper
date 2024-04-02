@@ -39,10 +39,10 @@ To use LinkedIn Data Extractor, follow these steps:
 
 Launch the application.
 Either upload a .csv file with the following columns:
-| job_title  | company_name | location | | URL |
-|-------|-----|------------|------------|
-| title #1 |  company #1 | location #1   | URL #1 |
-| title #2   |  company #2 | location #2     | URL #2 |
+| job_title | company_name | location | URL |
+|-----------|--------------|----------|-----|
+| title #1  | company #1   | location #1 | URL #1 |
+| title #2  | company #2   | location #2 | URL #2 |
 
 
 Or just click on the "Create new" button.
