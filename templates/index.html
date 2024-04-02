@@ -4,15 +4,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LinkedIn Data Extractor</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            margin-bottom: 1em;
+        }
+        input[type="file"] {
+            margin-bottom: 1em;
+        }
+        input[type="submit"], button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover, button:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
-    <h1>LinkedIn Data Extractor</h1>
-    <form action="/upload_csv" method="post" enctype="multipart/form-data">
-        <input type="file" name="file">
-        <input type="submit" value="Upload">
-    </form>
-    <button onclick="location.href='/main?upload=new'">Create new</button>
-    
-    
+    <div>
+        <h1>LinkedIn Data Extractor</h1>
+        <form action="/upload_csv" method="post" enctype="multipart/form-data">
+            <input type="file" name="file">
+            <input type="submit" value="Upload">
+        </form>
+        <button onclick="location.href='/main?upload=new'">Create new</button>
+    </div>
 </body>
 </html>
