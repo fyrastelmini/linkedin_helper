@@ -178,6 +178,9 @@ def message_handler(upload_status):
     elif upload_status == "empty":
         message = "Uploaded file is empty, new file created"
     elif upload_status == "new":
+        df_global = pd.DataFrame(
+            columns=["job_title", "company_name", "location", "URL"]
+        )
         message = "New file created successfully"
     elif upload_status == "new_line_ok":
         message = (
@@ -191,4 +194,4 @@ def message_handler(upload_status):
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=8080, debug=False)
+    app.run(host="0.0.0.0", port=8080, debug=False)
