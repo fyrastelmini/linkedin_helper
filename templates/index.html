@@ -7,10 +7,12 @@
 </head>
 <body>
     <h1>LinkedIn Data Extractor</h1>
-    <form method="post" action="/update_data" autocomplete="off">
-        <label for="url">Enter LinkedIn Job URL:</label>
-        <input type="text" id="url" name="url" required>
-        <button type="submit">Update Data</button>
+    <form action="/upload_csv" method="post" enctype="multipart/form-data">
+        <input type="file" name="file">
+        <input type="submit" value="Upload">
     </form>
+    <button onclick="location.href='/main?upload=new'">Create new</button>
+    
+    
 </body>
 </html>

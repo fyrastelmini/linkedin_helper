@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkedIn Data Extractor</title>
+</head>
+<body>
+    <h1>LinkedIn Data Extractor</h1>
+    {% if message %}
+    <p>{{ message }}</p>
+    {% endif %}
+    <form method="post" action="/update_data" autocomplete="off">
+        <label for="url">Enter LinkedIn Job URL:</label>
+        <input type="text" id="url" name="url" required>
+        <button type="submit">Update Data</button>
+    </form>
+    <button onclick="location.href='/'">Return</button>
+    <button onclick="location.href='/download_csv'">Save</button>
+    
+    
+    
+</body>
+</html>
