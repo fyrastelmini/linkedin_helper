@@ -15,4 +15,6 @@ lint:
 run:
 	python app.py
 
+build:
+	docker build -t linkedinhelper:latest .
 all: install format lint test
