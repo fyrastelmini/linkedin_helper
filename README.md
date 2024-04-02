@@ -49,7 +49,7 @@ Or just click on the "Create new" button.
 
 Enter the URL of the LinkedIn job posting you want to extract data from. The link should be of this form:
 https://www.linkedin.com/jobs/view/<job_id>/?* or https://www.linkedin.com/jobs/view/<job_id>
-<job_id> corresponds to a series of numbers
+( <job_id> corresponds to a series of numbers )
 
 Click on "Update Data" to extract the data. A dataframe will be updated within the container with the new lines corresponding to the job's info.
 
