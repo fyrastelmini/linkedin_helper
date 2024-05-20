@@ -13,8 +13,13 @@ lint:
 	pylint --disable=R,C app.py
 
 run:
-	python app.py
+	docker run -dp 127.0.0.1:8080:8080 --mount type=volume,src=volume-db,target=/etc/volume linkedinhelper:latest
 
 build:
+	docker volume create volume-db &&\
 	docker build -t linkedinhelper:latest .
+
+stop:
+	docker ps -q --filter "ancestor=linkedinhelper:latest" | xargs -r docker stop
+
 all: install format lint test

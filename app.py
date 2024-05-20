@@ -4,13 +4,47 @@ from bs4 import BeautifulSoup
 import requests
 from io import BytesIO
 from werkzeug.exceptions import RequestEntityTooLarge
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.orm import DeclarativeBase
+
+
+class Base(DeclarativeBase):
+    pass
+
+
+# Create a global DataFrame to store the data
+df_global = pd.DataFrame(columns=["job_title", "company_name", "location", "URL"])
+# Create SQL database
+db = SQLAlchemy(model_class=Base)
 
 
 app = Flask(__name__)
-# Create a global DataFrame to store the data
-df_global = pd.DataFrame(columns=["job_title", "company_name", "location", "URL"])
+# configure the SQLite database, relative to the app instance folder
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///project.db"
+# initialize the app with the extension
+db.init_app(app)
+
 # Set the maximum file size to 20MB
 app.config["MAX_CONTENT_LENGTH"] = 20 * 1024 * 1024
+
+
+class VolData(db.model):
+    __tablename__ = "jobs_table"
+    id = db.Column(db.Integer, primary_key=True)
+    job_title = db.Column(db.String)
+    company_name = db.Column(db.String)
+    location = db.Column(db.String)
+    URL = db.Column(db.String)
+
+    def __init__(self, job_title, company_name, location, URL) -> None:
+        super(VolData, self).__init__()
+        self.job_title = job_title
+        self.company_name = company_name
+        self.location = location
+        self.URL = URL
+
+    def __repr__(self) -> str:
+        return "<VolData %r>" % self.job_title
 
 
 # ______________________________ main routes _____________________________________
