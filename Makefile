@@ -13,7 +13,7 @@ lint:
 	pylint --disable=R,C app.py
 
 run:
-	docker run -dp 127.0.0.1:8080:8080 --mount type=volume,src=volume-db,target=/etc/volume linkedinhelper:latest
+	docker run -dp 127.0.0.1:8080:8080 --mount type=volume,src=volume-db,dst=/etc/volume linkedinhelper:latest
 
 build:
 	docker volume create volume-db &&\

@@ -1,4 +1,13 @@
-from flask import Flask, render_template, request, redirect, url_for, send_file, abort
+from flask import (
+    Flask,
+    render_template,
+    request,
+    redirect,
+    url_for,
+    send_file,
+    abort,
+    jsonify,
+)
 import pandas as pd
 from bs4 import BeautifulSoup
 import requests
@@ -14,19 +23,19 @@ df_global = pd.DataFrame(columns=["job_title", "company_name", "location", "URL"
 
 app = Flask(__name__)
 # configure the SQLite database, relative to the app instance folder
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///project.db"
+db_file_path = '/etc/volume/project.db'
+app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_file_path}"
 
 # Create SQL database
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
-# initialize the app with the extension
-db.init_app(app)
+
 
 # Set the maximum file size to 20MB
 app.config["MAX_CONTENT_LENGTH"] = 20 * 1024 * 1024
 
 
-class VolData(db.model):
+class Job(db.Model):
     __tablename__ = "jobs_table"
     id = db.Column(db.Integer, primary_key=True)
     job_title = db.Column(db.String)
@@ -35,23 +44,23 @@ class VolData(db.model):
     URL = db.Column(db.String, unique=True)
 
     def __init__(self, job_title, company_name, location, URL) -> None:
-        super(VolData, self).__init__()
+        super(Job, self).__init__()
         self.job_title = job_title
         self.company_name = company_name
         self.location = location
         self.URL = URL
 
     def __repr__(self) -> str:
-        return "<VolData %r>" % self.job_title
+        return "<Job %r>" % self.job_title
 
 
-class VolDataSchema(ma.Schema):
+class JobSchema(ma.Schema):
     class Meta:
-        fields = {"id", "job_title", "company_name", "location", "URL"}
+        fields = ["id", "job_title", "company_name", "location", "URL"]
 
 
-single_vol_data_schema = VolDataSchema()
-multiple_vol_data_schema = VolDataSchema(many=True)
+single_Job_data_schema = JobSchema()
+multiple_Job_data_schema = JobSchema(many=True)
 
 with app.app_context():
     db.create_all()
@@ -126,14 +135,32 @@ def update_data():
 
     # Check if the text is not None
     if not (text == None):
-        text = pd.DataFrame([text], index=[0])
-        df_global = pd.concat([df_global, text], ignore_index=True)
+        text_tmp = pd.DataFrame([text], index=[0])
+        df_global = pd.concat([df_global, text_tmp], ignore_index=True)
         df_global.drop_duplicates(inplace=True)
         upload = "new_line_ok"
     else:
         upload = "new_line_no"
 
+    # Check if the text is not None
+    if not (text == None):
+        new_job = Job(
+            text["job_title"], text["company_name"], text["location"], text["URL"]
+        )
+        db.session.add(new_job)
+        db.session.commit()
+        upload = "new_line_ok"
+    else:
+        upload = "new_line_no"
+
     return redirect(url_for("main", upload=upload))
+
+
+@app.route("/view", methods=["GET"])
+def view_db():
+    all_jobs = Job.query.all()
+    result = multiple_Job_data_schema.dump(all_jobs)
+    return jsonify(result)
 
 
 # Define the download_csv route
@@ -238,4 +265,4 @@ def message_handler(upload_status):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080, debug=False)
+    app.run(host="0.0.0.0", port=8080, debug=True)

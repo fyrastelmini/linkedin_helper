@@ -6,4 +6,5 @@ numpy==1.26.4
 Werkzeug==3.0.2
 Flask-SQLAlchemy==3.1.1
 SQLAlchemy==2.0.30
-flask_marshmallow
+flask_marshmallow ==1.2.1
+marshmallow-sqlalchemy ==1.0.0
