@@ -5,22 +5,20 @@ import requests
 from io import BytesIO
 from werkzeug.exceptions import RequestEntityTooLarge
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase
-
-
-class Base(DeclarativeBase):
-    pass
+from flask_marshmallow import Marshmallow
 
 
 # Create a global DataFrame to store the data
 df_global = pd.DataFrame(columns=["job_title", "company_name", "location", "URL"])
-# Create SQL database
-db = SQLAlchemy(model_class=Base)
 
 
 app = Flask(__name__)
 # configure the SQLite database, relative to the app instance folder
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///project.db"
+
+# Create SQL database
+db = SQLAlchemy(app)
+ma = Marshmallow(app)
 # initialize the app with the extension
 db.init_app(app)
 
@@ -34,7 +32,7 @@ class VolData(db.model):
     job_title = db.Column(db.String)
     company_name = db.Column(db.String)
     location = db.Column(db.String)
-    URL = db.Column(db.String)
+    URL = db.Column(db.String, unique=True)
 
     def __init__(self, job_title, company_name, location, URL) -> None:
         super(VolData, self).__init__()
@@ -45,6 +43,18 @@ class VolData(db.model):
 
     def __repr__(self) -> str:
         return "<VolData %r>" % self.job_title
+
+
+class VolDataSchema(ma.Schema):
+    class Meta:
+        fields = {"id", "job_title", "company_name", "location", "URL"}
+
+
+single_vol_data_schema = VolDataSchema()
+multiple_vol_data_schema = VolDataSchema(many=True)
+
+with app.app_context():
+    db.create_all()
 
 
 # ______________________________ main routes _____________________________________
