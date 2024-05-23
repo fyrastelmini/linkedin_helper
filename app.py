@@ -15,7 +15,7 @@ from io import BytesIO
 from werkzeug.exceptions import RequestEntityTooLarge
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
-
+from utils import extract_div_content, message_handler
 
 # Create a global DataFrame to store the data
 df_global = pd.DataFrame(columns=["job_title", "company_name", "location", "URL"])
@@ -23,7 +23,8 @@ df_global = pd.DataFrame(columns=["job_title", "company_name", "location", "URL"
 
 app = Flask(__name__)
 # configure the SQLite database, relative to the app instance folder
-db_file_path = '/etc/volume/project.db'
+db_file_path = "/etc/volume/project.db"
+db_file_path = "project.db"
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_file_path}"
 
 # Create SQL database
@@ -33,6 +34,15 @@ ma = Marshmallow(app)
 
 # Set the maximum file size to 20MB
 app.config["MAX_CONTENT_LENGTH"] = 20 * 1024 * 1024
+
+
+# Handle the RequestEntityTooLarge exception
+@app.errorhandler(RequestEntityTooLarge)
+def handle_file_size_too_large():
+    # check if request type is POST
+    if request.method == "POST":
+        return redirect(url_for("main", upload="file_too_large"))
+    abort(413)
 
 
 class Job(db.Model):
@@ -115,9 +125,6 @@ def upload_csv():
     if not (df.columns == ["job_title", "company_name", "location", "URL"]).all():
         return redirect(url_for("main", upload="error"))
 
-    # If everything is fine, store the DataFrame in df_global
-    df_global = df
-
     return redirect(url_for("main", upload="success"))
 
 
@@ -131,16 +138,6 @@ def update_data():
         "top-card-layout__entity-info-container flex flex-wrap papabear:flex-nowrap"
     )
     text = extract_div_content(url, div_class)
-    global df_global
-
-    # Check if the text is not None
-    if not (text == None):
-        text_tmp = pd.DataFrame([text], index=[0])
-        df_global = pd.concat([df_global, text_tmp], ignore_index=True)
-        df_global.drop_duplicates(inplace=True)
-        upload = "new_line_ok"
-    else:
-        upload = "new_line_no"
 
     # Check if the text is not None
     if not (text == None):
@@ -152,6 +149,7 @@ def update_data():
         upload = "new_line_ok"
     else:
         upload = "new_line_no"
+        print(text)
 
     return redirect(url_for("main", upload=upload))
 
@@ -176,92 +174,6 @@ def download_csv():
     return send_file(
         csv_data, mimetype="text/csv", as_attachment=True, download_name="data.csv"
     )
-
-
-# ______________________________ functions ______________________________________
-
-
-# Function to extract the content of a specific div from a URL
-def extract_div_content(url, div_class):
-    # Send a GET request to the URL
-    try:
-        response = requests.get(url, timeout=5)
-
-        # Check if the request was successful (status code 200)
-        if response.status_code == 200:
-            # Parse the HTML content of the page using BeautifulSoup
-            soup = BeautifulSoup(response.text, "html.parser")
-
-            # Find the specific div based on its ID
-            target_div = soup.find("div", {"class": div_class})
-
-            # Check if the div is found
-            if target_div:
-                # Extract and print the content of the div
-
-                job_title = (
-                    target_div.find("h1", class_="top-card-layout__title")
-                    .text.strip()
-                    .split("Login & Sign Up")[0]
-                )
-                company_name = target_div.find(
-                    "a", class_="topcard__org-name-link"
-                ).text.strip()
-                location = target_div.find(
-                    "span", class_="topcard__flavor--bullet"
-                ).text.strip()
-                return {
-                    "job_title": job_title,
-                    "company_name": company_name,
-                    "location": location,
-                    "URL": url,
-                }
-            else:
-                print(f"Div with class '{div_class}' not found on the page.")
-
-        else:
-            print(f"Failed to retrieve the page. Status code: {response.status_code}")
-    except:
-        # return None if there is an error
-        return None
-
-
-# Handle the RequestEntityTooLarge exception
-@app.errorhandler(RequestEntityTooLarge)
-def handle_file_size_too_large():
-    # check if request type is POST
-    if request.method == "POST":
-        return redirect(url_for("main", upload="file_too_large"))
-    abort(413)
-
-
-# Function to handle different upload statuses
-def message_handler(upload_status):
-    global df_global
-    if upload_status == "success":
-        message = "File uploaded successfully"
-    elif upload_status == "no_file":
-        message = "No file uploaded, new file created"
-    elif upload_status == "error":
-        message = "Incorrect file, new file created"
-    elif upload_status == "file_too_large":
-        message = "Uploaded file is too large, new file created"
-    elif upload_status == "empty":
-        message = "Uploaded file is empty, new file created"
-    elif upload_status == "new":
-        df_global = pd.DataFrame(
-            columns=["job_title", "company_name", "location", "URL"]
-        )
-        message = "New file created successfully"
-    elif upload_status == "new_line_ok":
-        message = (
-            f"New line added successfully, current number of lines is: {len(df_global)}"
-        )
-    elif upload_status == "new_line_no":
-        message = f"Invalid line, current number of lines is: {len(df_global)}"
-    else:
-        message = ""
-    return message
 
 
 if __name__ == "__main__":
