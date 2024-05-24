@@ -22,4 +22,7 @@ build:
 stop:
 	docker ps -q --filter "ancestor=linkedinhelper:latest" | xargs -r docker stop
 
+compose:
+	docker-compose up -d
+
 all: install format lint test

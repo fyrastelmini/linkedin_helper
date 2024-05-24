@@ -1,4 +1,4 @@
-from utils import extract_div_content
+from app.utils import extract_div_content
 
 
 def test_extract_div_content():

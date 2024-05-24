@@ -1,0 +1,16 @@
+version: '3'
+services:
+  app:
+    build: ./app
+    ports:
+      - "8000:8000"
+    volumes:
+      - type: volume
+        source: volume-db
+        target: /etc/volume
+  data_extractor:
+    build: ./data_extractor
+    ports:
+      - "5000:5000"
+volumes:
+  volume-db:

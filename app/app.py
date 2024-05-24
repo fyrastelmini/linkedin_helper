@@ -24,7 +24,7 @@ df_global = pd.DataFrame(columns=["job_title", "company_name", "location", "URL"
 app = Flask(__name__)
 # configure the SQLite database, relative to the app instance folder
 db_file_path = "/etc/volume/project.db"
-db_file_path = "project.db"
+#db_file_path = "project.db"
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_file_path}"
 
 # Create SQL database
@@ -63,10 +63,12 @@ class Job(db.Model):
     def __repr__(self) -> str:
         return "<Job %r>" % self.job_title
 
-
 class JobSchema(ma.Schema):
     class Meta:
         fields = ["id", "job_title", "company_name", "location", "URL"]
+
+
+
 
 
 single_Job_data_schema = JobSchema()
@@ -133,23 +135,32 @@ def upload_csv():
 def update_data():
     url = request.form["url"]
 
-    # Extract information from the URL
+    # Define the div class
     div_class = (
         "top-card-layout__entity-info-container flex flex-wrap papabear:flex-nowrap"
     )
-    text = extract_div_content(url, div_class)
 
-    # Check if the text is not None
-    if not (text == None):
-        new_job = Job(
-            text["job_title"], text["company_name"], text["location"], text["URL"]
-        )
-        db.session.add(new_job)
-        db.session.commit()
-        upload = "new_line_ok"
+    # Send a POST request to the microservice
+    response = requests.post('http://data_extractor:5000/extract', json={'url': url, 'div_class': div_class})
+
+    # Check if the request was successful
+    if response.status_code == 200:
+        text = response.json()
+
+        # Check if the text is not None
+        if text:
+            new_job = Job(
+                text["job_title"], text["company_name"], text["location"], text["URL"]
+            )
+            db.session.add(new_job)
+            db.session.commit()
+            upload = "new_line_ok"
+        else:
+            upload = "new_line_no"
+            print(text)
     else:
         upload = "new_line_no"
-        print(text)
+        print(f"Failed to retrieve data from microservice. Status code: {response.status_code}")
 
     return redirect(url_for("main", upload=upload))
 
@@ -177,4 +188,4 @@ def download_csv():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080, debug=True)
+    app.run(host="0.0.0.0", port=8000, debug=True)
