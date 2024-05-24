@@ -1,5 +1,6 @@
 # LinkedIn Data Extractor
-![Test](https://github.com/fyrastelmini/linkedin_helper/actions/workflows/python-app.yml/badge.svg)
+![Test app](https://github.com/fyrastelmini/linkedin_helper/actions/workflows/app.yml/badge.svg)
+![Test extractor microservice](https://github.com/fyrastelmini/linkedin_helper/actions/workflows/data_extractor.yml/badge.svg)
 ![Deploy](https://github.com/fyrastelmini/linkedin_helper/actions/workflows/docker-image.yml/badge.svg)
 
 LinkedIn Data Extractor is a tool that allows you to extract data from LinkedIn job postings using a URL.
