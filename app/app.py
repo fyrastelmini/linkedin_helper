@@ -13,8 +13,7 @@ from bs4 import BeautifulSoup
 import requests
 from io import BytesIO
 from werkzeug.exceptions import RequestEntityTooLarge
-from flask_sqlalchemy import SQLAlchemy
-from flask_marshmallow import Marshmallow
+from database import db, ma, Job, JobSchema
 from utils import extract_div_content, message_handler
 
 # Create a global DataFrame to store the data
@@ -27,9 +26,9 @@ db_file_path = "/etc/volume/project.db"
 #db_file_path = "project.db"
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_file_path}"
 
-# Create SQL database
-db = SQLAlchemy(app)
-ma = Marshmallow(app)
+# Initialize the database with the app
+db.init_app(app)
+ma.init_app(app)
 
 
 # Set the maximum file size to 20MB
@@ -45,34 +44,6 @@ def handle_file_size_too_large():
     abort(413)
 
 
-class Job(db.Model):
-    __tablename__ = "jobs_table"
-    id = db.Column(db.Integer, primary_key=True)
-    job_title = db.Column(db.String)
-    company_name = db.Column(db.String)
-    location = db.Column(db.String)
-    URL = db.Column(db.String, unique=True)
-
-    def __init__(self, job_title, company_name, location, URL) -> None:
-        super(Job, self).__init__()
-        self.job_title = job_title
-        self.company_name = company_name
-        self.location = location
-        self.URL = URL
-
-    def __repr__(self) -> str:
-        return "<Job %r>" % self.job_title
-
-class JobSchema(ma.Schema):
-    class Meta:
-        fields = ["id", "job_title", "company_name", "location", "URL"]
-
-
-
-
-
-single_Job_data_schema = JobSchema()
-multiple_Job_data_schema = JobSchema(many=True)
 
 with app.app_context():
     db.create_all()
