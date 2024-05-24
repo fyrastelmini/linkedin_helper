@@ -15,7 +15,7 @@ from io import BytesIO
 from werkzeug.exceptions import RequestEntityTooLarge
 from database import db, ma, Job, JobSchema
 from utils import extract_div_content, message_handler
-from database import db, ma, Job, JobSchema, RawData, RawDataSchema
+from database import db, ma, Job, JobSchema, RawData, RawDataSchema, single_Job_data_schema, multiple_Job_data_schema, single_RawData_data_schema, multiple_RawData_data_schema
 
 # Create a global DataFrame to store the data
 df_global = pd.DataFrame(columns=["job_title", "company_name", "location", "URL"])
