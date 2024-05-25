@@ -1,3 +1,8 @@
 Flask==3.0.2
 beautifulsoup4==4.12.3
 requests==2.31.0
+kafka-python==2.0.2
+Flask-SQLAlchemy==3.1.1
+SQLAlchemy==2.0.30
+flask_marshmallow ==1.2.1
+marshmallow-sqlalchemy ==1.0.0

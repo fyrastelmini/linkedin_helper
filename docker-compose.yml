@@ -1,15 +1,47 @@
 services:
   app:
     build: ./app
+    networks:
+      - app-network
     ports:
       - "8000:8000"
     volumes:
       - type: volume
         source: volume-db
         target: /etc/volume
+    environment:
+      - DATABASE_URL=sqlite:////etc/volume/project.db
   data_extractor:
     build: ./data_extractor
+    networks:
+      - app-network
+    volumes:
+      - type: volume
+        source: volume-db
+        target: /etc/volume
+    environment:
+      - DATABASE_URL=sqlite:////etc/volume/project.db
     ports:
       - "5000:5000"
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    networks:
+      - app-network
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - app-network
 volumes:
   volume-db:
+networks:
+  app-network:
+    driver: bridge

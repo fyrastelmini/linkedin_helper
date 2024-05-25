@@ -16,6 +16,25 @@ from werkzeug.exceptions import RequestEntityTooLarge
 from database import db, ma, Job, JobSchema
 from utils import extract_div_content, message_handler
 from database import db, ma, Job, JobSchema, RawData, RawDataSchema, single_Job_data_schema, multiple_Job_data_schema, single_RawData_data_schema, multiple_RawData_data_schema
+from kafka import KafkaProducer
+import json
+import os
+from kafka.errors import NoBrokersAvailable
+import time
+
+# Initialize Kafka producer
+def create_producer():
+    while True:
+        try:
+            producer = KafkaProducer(bootstrap_servers='kafka:9092',
+                                     value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+            return producer
+        except NoBrokersAvailable:
+            print("Broker not available, retrying...")
+            time.sleep(3)
+
+
+
 
 # Create a global DataFrame to store the data
 df_global = pd.DataFrame(columns=["job_title", "company_name", "location", "URL"])
@@ -25,7 +44,7 @@ app = Flask(__name__)
 # configure the SQLite database, relative to the app instance folder
 db_file_path = "/etc/volume/project.db"
 #db_file_path = "project.db"
-app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_file_path}"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv('DATABASE_URL')
 
 # Initialize the database with the app
 db.init_app(app)
@@ -111,36 +130,26 @@ def update_data():
     div_class = (
         "top-card-layout__entity-info-container flex flex-wrap papabear:flex-nowrap"
     )
-
-    # Send a POST request to the microservice
-    response = requests.post('http://data_extractor:5000/extract', json={'url': url, 'div_class': div_class})
+    response = requests.get(url)
 
     # Check if the request was successful
     if response.status_code == 200:
-        text = response.json()
+        html_content = response.text
+        new_raw_data = RawData(source=url, raw_data=html_content)
+        db.session.add(new_raw_data)
+    # Send a message to the Kafka topic
+    producer.send('new_raw_data', {'url': url, 'div_class': div_class})
+    return redirect(url_for("main", upload="ok"))
 
-        # Check if the text is not None
-        if text:
-            new_job = Job(
-                text["job_title"], text["company_name"], text["location"], text["URL"]
-            )
-            db.session.add(new_job)
-            db.session.commit()
-            upload = "new_line_ok"
-        else:
-            upload = "new_line_no"
-            print(text)
-    else:
-        upload = "new_line_no"
-        print(f"Failed to retrieve data from microservice. Status code: {response.status_code}")
-
-    return redirect(url_for("main", upload=upload))
+    
 
 
 @app.route("/view", methods=["GET"])
 def view_db():
     all_jobs = Job.query.all()
     result = multiple_Job_data_schema.dump(all_jobs)
+    #all_raw = RawData.query.all()
+    #result = multiple_RawData_data_schema.dump(all_raw)
     return jsonify(result)
 
 
@@ -160,4 +169,5 @@ def download_csv():
 
 
 if __name__ == "__main__":
+    producer = create_producer()
     app.run(host="0.0.0.0", port=8000, debug=True)

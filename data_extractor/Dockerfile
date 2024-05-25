@@ -4,6 +4,8 @@ WORKDIR /data_extractor
 
 ADD ./data_extractor.py /data_extractor/data_extractor.py
 ADD ./requirements.txt /data_extractor/requirements.txt
+ADD ./database.py /data_extractor/database.py
+
 
 RUN pip install --no-cache-dir -r requirements.txt
 
