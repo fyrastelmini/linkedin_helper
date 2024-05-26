@@ -57,7 +57,7 @@ class SummarizedData(db.Model):
     source = db.Column(db.String)
     summarized_data = db.Column(db.Text)
 
-    def __init__(self,source, raw_data_id, summarized_data) -> None:
+    def __init__(self,source, summarized_data) -> None:
         super(SummarizedData, self).__init__()
         self.source = source
         self.summarized_data = summarized_data

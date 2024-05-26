@@ -15,7 +15,7 @@ from io import BytesIO
 from werkzeug.exceptions import RequestEntityTooLarge
 from database import db, ma, Job, JobSchema
 from utils import extract_div_content, message_handler
-from database import db, ma, Job, JobSchema, RawData, RawDataSchema, single_Job_data_schema, multiple_Job_data_schema, single_RawData_data_schema, multiple_RawData_data_schema
+from database import db, ma, Job, JobSchema, RawData, RawDataSchema, single_Job_data_schema, multiple_Job_data_schema, single_RawData_data_schema, multiple_RawData_data_schema, SummarizedData, SummarizedDataSchema, single_SummarizedData_data_schema, multiple_SummarizedData_data_schema
 from kafka import KafkaProducer
 import json
 import os
@@ -131,7 +131,7 @@ def update_data():
         "top-card-layout__entity-info-container flex flex-wrap papabear:flex-nowrap"
     )
     div_class_summarize = (
-        "jobs-box__html-content jobs-description-content__text t-14 t-normal jobs-description-content__text--stretch"
+        "show-more-less-html__markup show-more-less-html__markup--clamp-after-5 relative overflow-hidden"
     )
     response = requests.get(url)
 
@@ -150,10 +150,12 @@ def update_data():
 
 @app.route("/view", methods=["GET"])
 def view_db():
-    all_jobs = Job.query.all()
-    result = multiple_Job_data_schema.dump(all_jobs)
+    #all_jobs = Job.query.all()
+    #result = multiple_Job_data_schema.dump(all_jobs)
     #all_raw = RawData.query.all()
     #result = multiple_RawData_data_schema.dump(all_raw)
+    all_summarized = SummarizedData.query.all()
+    result = multiple_SummarizedData_data_schema.dump(all_summarized)
     return jsonify(result)
 
 

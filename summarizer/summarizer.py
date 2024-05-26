@@ -19,35 +19,28 @@ summarizer = pipeline(
 
 
 def summarize(text: str) -> str:
-    return summarizer(text, max_length=200, min_length=50)[0]["summary_text"]
+    long_text = "Summerize the key requirements for applying to this Job offer: "+text
+    return summarizer(long_text)[0]["summary_text"]
 
-app = flask.Flask(__name__)
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+db.init_app(app)
+ma.init_app(app)
 
 def extract_div_content(data, div_class):
+    if True:
+        soup = BeautifulSoup(data, "html.parser")
+        target_div = soup.find("div", {"class": div_class})
 
-    try:
-        response = data
-
-        if True:
-            soup = BeautifulSoup(data, "html.parser")
-            target_div = soup.find("div", {"class": div_class})
-
-            if target_div:
-                data = (
-                    target_div.find("h2", class_="text-heading-large")
-                    .text.strip()
-                )
+        if target_div:
+            data = target_div.text.strip()
                 
-                return jsonify({
-                    "data": data,
-                })
-            else:
-                return jsonify({"error": f"Div with class '{div_class}' not found on the page."}), 404
-
+            return jsonify({
+                "data": data 
+            })
         else:
-            return jsonify({"error": f"Failed to retrieve the page. Status code: {response.status_code}"}), 500
-    except:
-        return jsonify({"error": "An error occurred while processing the request."}), 500
+            return jsonify({"error": f"Div with class '{div_class}' not found on the page."}), 404
+
 
 def create_consumer():
     while True:
@@ -71,17 +64,23 @@ def consume_messages():
         data = message.value['data']
         div_class = message.value['div_class']
         url = message.value['url']
+
         with app.test_request_context():
             result = extract_div_content(data, div_class)
-        if result:  # Check the status code
+        if result.status_code == 200:  # Check the status code
             text = result.get_json()
 
             if text:
-                new_SummarizedData = SummarizedData(url,text["data"])
+                new_SummarizedData = SummarizedData(url,summarize(text["data"]))
                 with app.app_context():
                     db.session.add(new_SummarizedData)
                     db.session.commit()
+                print(text)
 
 if __name__ == "__main__":
-    app.run(port=4040)
+    with app.app_context():
+        db.create_all()
+    consume_messages()
+    app.run(debug=True, host='0.0.0.0',port=4040)
+
 
