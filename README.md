@@ -5,7 +5,7 @@
 
 LinkedIn Data Extractor is a tool that allows you to extract data from LinkedIn job postings using a URL.
 
-## Installation
+## Installation [Obsolete, just run 'docker-compose up' on main directory]
 
 Clone this repository to your local machine:
 
