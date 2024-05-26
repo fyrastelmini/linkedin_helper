@@ -23,6 +23,18 @@ services:
       - DATABASE_URL=sqlite:////etc/volume/project.db
     ports:
       - "5000:5000"
+  summarizer:
+    build: ./summarizer
+    networks:
+      - app-network
+    volumes:
+      - type: volume
+        source: volume-db
+        target: /etc/volume
+    environment:
+      - DATABASE_URL=sqlite:////etc/volume/project.db
+    ports:
+      - "4040:4040"
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     environment:

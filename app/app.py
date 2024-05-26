@@ -130,6 +130,9 @@ def update_data():
     div_class = (
         "top-card-layout__entity-info-container flex flex-wrap papabear:flex-nowrap"
     )
+    div_class_summarize = (
+        "jobs-box__html-content jobs-description-content__text t-14 t-normal jobs-description-content__text--stretch"
+    )
     response = requests.get(url)
 
     # Check if the request was successful
@@ -137,10 +140,11 @@ def update_data():
         html_content = response.text
         new_raw_data = RawData(source=url, raw_data=html_content)
         db.session.add(new_raw_data)
-    # Send a message to the Kafka topic
-    producer.send('new_raw_data', {'url': url, 'div_class': div_class})
-    return redirect(url_for("main", upload="ok"))
-
+        # Send a message to the Kafka topic
+        producer.send('new_raw_data', {'url': url, 'div_class': div_class})
+        producer.send('new_raw_data_to_summarize', {'url': url, 'data': html_content, 'div_class': div_class_summarize})
+        return redirect(url_for("main", upload="ok"))
+    return redirect(url_for("main", upload="error"))
     
 
 

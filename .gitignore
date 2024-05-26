@@ -5,3 +5,4 @@ dev/*
 *.csv
 venv/
 instance/
+*.ipynb

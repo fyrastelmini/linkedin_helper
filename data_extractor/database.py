@@ -50,3 +50,24 @@ class RawDataSchema(ma.Schema):
 
 single_RawData_data_schema = RawDataSchema()
 multiple_RawData_data_schema = RawDataSchema(many=True)
+
+class SummarizedData(db.Model):
+    __tablename__ = "summarized_data_table"
+    id = db.Column(db.Integer, primary_key=True)
+    source = db.Column(db.String)
+    summarized_data = db.Column(db.Text)
+
+    def __init__(self,source, raw_data_id, summarized_data) -> None:
+        super(SummarizedData, self).__init__()
+        self.source = source
+        self.summarized_data = summarized_data
+
+    def __repr__(self) -> str:
+        return "<SummarizedData %r>" % self.summarized_data
+
+class SummarizedDataSchema(ma.Schema):
+    class Meta:
+        fields = ["id", "source", "summarized_data"]
+
+single_SummarizedData_data_schema = SummarizedDataSchema()
+multiple_SummarizedData_data_schema = SummarizedDataSchema(many=True)
