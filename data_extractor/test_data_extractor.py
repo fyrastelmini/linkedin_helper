@@ -3,7 +3,12 @@ from unittest.mock import patch, MagicMock
 import os
 from database import Job,db,ma
 from data_extractor import extract_div_content, create_consumer, consume_messages
-
+os.environ['DATABASE_URL'] = 'sqlite:////tmp/test.db'
+from flask import Flask
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+db.init_app(app)
+ma.init_app(app)
 def test_extract_div_content():
     with patch('requests.get') as mock_get:
         mock_get.return_value.status_code = 200
