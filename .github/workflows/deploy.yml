@@ -36,7 +36,6 @@ jobs:
 
       - name: Build and push Docker images
         env:
-          AWS_REGION: us-west-2
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
           IMAGE_REPO_NAME: your-ecr-repo-name
         run: |
@@ -45,7 +44,7 @@ jobs:
 
       - name: Convert Docker Compose to ECS Task Definition
         run: |
-          ecs-cli configure --cluster your-cluster-name --region ${{ secrets.AWS_REGION }}
+          ecs-cli configure --cluster your-cluster-name --region us-west-2
 
       - name: Deploy to ECS
         env:
