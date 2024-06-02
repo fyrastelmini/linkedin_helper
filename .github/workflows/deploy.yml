@@ -44,6 +44,8 @@ jobs:
           docker-compose -f docker-compose.yml push
 
       - name: Convert Docker Compose to ECS Task Definition
+        env:
+          AWS_REGION: us-west-2
         run: |
           ecs-cli configure --cluster your-cluster-name --region $AWS_REGION
           ecs-cli compose --file docker-compose.yml create
@@ -57,3 +59,4 @@ jobs:
         run: |
           ecs-cli compose --file docker-compose.yml service up
           ecs-cli compose --file docker-compose.yml service scale 1
+
