@@ -16,14 +16,20 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      - name: Install ECS CLI
+      - name: Install AWS CLI v2
         run: |
-          sudo curl -Lo /usr/local/bin/ecs-cli https://amazon-ecs-cli.s3.amazonaws.com/ecs-cli-linux-amd64-latest
-          sudo chmod +x /usr/local/bin/ecs-cli
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install
 
-      - name: Verify ECS CLI Installation
+      - name: Install AWS Copilot CLI
         run: |
-          ecs-cli --version
+          sudo curl -Lo /usr/local/bin/copilot https://github.com/aws/copilot-cli/releases/latest/download/copilot-linux
+          sudo chmod +x /usr/local/bin/copilot
+
+      - name: Verify Copilot Installation
+        run: |
+          copilot --version
 
       - name: Log in to Amazon ECR
         env:
@@ -43,20 +49,15 @@ jobs:
           docker-compose -f docker-compose.yml build
           docker-compose -f docker-compose.yml push
 
-      - name: Convert Docker Compose to ECS Task Definition
+      - name: Initialize Copilot
         env:
           AWS_REGION: us-west-2
         run: |
-          ecs-cli configure --cluster your-cluster-name --region $AWS_REGION
-          ecs-cli compose --file docker-compose.yml create
+          copilot init --app your-app-name --type "Load Balanced Web Service" --name your-service-name --dockerfile ./Dockerfile --port 80
 
-      - name: Deploy to ECS
+      - name: Deploy with Copilot
         env:
           AWS_REGION: us-west-2
-          CLUSTER_NAME: your-cluster-name
-          SERVICE_NAME: your-service-name
-          TASK_DEFINITION: your-task-definition-family
         run: |
-          ecs-cli compose --file docker-compose.yml service up
-          ecs-cli compose --file docker-compose.yml service scale 1
+          copilot deploy --name your-service-name --env test
 
