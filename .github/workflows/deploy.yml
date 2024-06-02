@@ -6,12 +6,15 @@ on:
       - main
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
 
       - name: Log in to Amazon ECR
         env:
@@ -22,27 +25,27 @@ jobs:
         run: |
           aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
-      - name: Build, tag, and push image to Amazon ECR
+      - name: Build and push Docker images
         env:
           AWS_REGION: us-west-2
           AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
           IMAGE_REPO_NAME: your-ecr-repo-name
         run: |
-          docker build -t $IMAGE_REPO_NAME .
-          docker tag $IMAGE_REPO_NAME:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
-          docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
+          docker-compose -f docker-compose.yml build
+          docker-compose -f docker-compose.yml push
+
+      - name: Convert Docker Compose to ECS Task Definition
+        run: |
+          ecs-cli configure --cluster your-cluster-name --region $AWS_REGION
+          ecs-cli compose --file docker-compose.yml create
 
       - name: Deploy to ECS
         env:
           AWS_REGION: us-west-2
-          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
           CLUSTER_NAME: your-cluster-name
           SERVICE_NAME: your-service-name
           TASK_DEFINITION: your-task-definition-family
-          CONTAINER_NAME: your-container-name
-          IMAGE_URI: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$IMAGE_REPO_NAME:latest
         run: |
-          TASK_DEFINITION_JSON=$(aws ecs describe-task-definition --task-definition $TASK_DEFINITION)
-          NEW_TASK_DEFINITION=$(echo $TASK_DEFINITION_JSON | jq --arg IMAGE_URI "$IMAGE_URI" '.taskDefinition | .containerDefinitions[0].image=$IMAGE_URI | del(.status, .revision, .taskDefinitionArn)')
-          aws ecs register-task-definition --cli-input-json "$NEW_TASK_DEFINITION"
-          aws ecs update-service --cluster $CLUSTER_NAME --service $SERVICE_NAME --force-new-deployment --region $AWS_REGION
+          ecs-cli compose --file docker-compose.yml service up
+          ecs-cli compose --file docker-compose.yml service up --deployment-max-percent 200 --deployment-min-healthy-percent 100
+          ecs-cli compose --file docker-compose.yml service scale 1
