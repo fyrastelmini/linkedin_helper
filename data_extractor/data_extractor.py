@@ -10,12 +10,10 @@ import time
 
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+db.init_app(app)
+ma.init_app(app)
 
-def init_db():
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
-    db.init_app(app)
-    ma.init_app(app)
-init_db()
 def extract_div_content(url, div_class):
 
     try:
