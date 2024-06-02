@@ -2,6 +2,14 @@ import pytest
 from unittest.mock import patch, MagicMock
 import os
 from database import Job,db,ma
+import requests
+from bs4 import BeautifulSoup
+from flask import Flask, jsonify
+from kafka import KafkaConsumer
+from kafka.errors import NoBrokersAvailable
+import json
+import time
+
 def extract_div_content(url, div_class):
 
     try:
