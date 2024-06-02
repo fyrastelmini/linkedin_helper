@@ -45,8 +45,7 @@ jobs:
 
       - name: Convert Docker Compose to ECS Task Definition
         run: |
-          ecs-cli configure --cluster your-cluster-name --region $AWS_REGION
-          ecs-cli compose --file docker-compose.yml create
+          ecs-cli configure --cluster your-cluster-name --region ${{ secrets.AWS_REGION }}
 
       - name: Deploy to ECS
         env:
