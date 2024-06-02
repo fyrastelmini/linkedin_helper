@@ -1,8 +1,9 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from data_extractor import app, db, extract_div_content, create_consumer, consume_messages
 import os
 os.environ['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
+from data_extractor import app, db, init_db, extract_div_content, create_consumer, consume_messages
+init_db()
 def test_extract_div_content():
     with patch('requests.get') as mock_get:
         mock_get.return_value.status_code = 200
