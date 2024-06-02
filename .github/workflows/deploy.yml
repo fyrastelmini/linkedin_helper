@@ -16,6 +16,17 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
+      - name: Install AWS CLI v2
+        run: |
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install
+
+      - name: Install ECS CLI
+        run: |
+          sudo curl -Lo /usr/local/bin/ecs-cli https://amazon-ecs-cli.s3.amazonaws.com/ecs-cli-linux-amd64-latest
+          sudo chmod +x /usr/local/bin/ecs-cli
+
       - name: Log in to Amazon ECR
         env:
           AWS_REGION: us-west-2
@@ -47,5 +58,4 @@ jobs:
           TASK_DEFINITION: your-task-definition-family
         run: |
           ecs-cli compose --file docker-compose.yml service up
-          ecs-cli compose --file docker-compose.yml service up --deployment-max-percent 200 --deployment-min-healthy-percent 100
           ecs-cli compose --file docker-compose.yml service scale 1
