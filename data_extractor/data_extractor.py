@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify,make_response
 from bs4 import BeautifulSoup
 import requests
 from kafka import KafkaConsumer,KafkaProducer
@@ -39,19 +39,19 @@ def extract_div_content(url, div_class):
                 location = target_div.find(
                     "span", class_="topcard__flavor--bullet"
                 ).text.strip()
-                return jsonify({
+                return make_response(jsonify({
                     "job_title": job_title,
                     "company_name": company_name,
                     "location": location,
                     "URL": url,
-                })
+                }),200)
             else:
-                return jsonify({"error": f"Div with class '{div_class}' not found on the page."}), 404
+                return make_response(jsonify({"error": f"Div with class '{div_class}' not found on the page."}),404)
 
         else:
-            return jsonify({"error": f"Failed to retrieve the page. Status code: {response.status_code}"}), 500
+            return make_response(jsonify({"error": f"Failed to retrieve the page. Status code: {response.status_code}"}),404)
     except:
-        return jsonify({"error": "An error occurred while processing the request."}), 500
+        return make_response(jsonify({"error": "An error occurred while processing the request."}),404)
 
 def create_consumer():
     while True:
@@ -74,14 +74,16 @@ def consume_messages():
     for message in consumer:
         url = message.value['url']
         div_class = message.value['div_class']
-        with app.test_request_context():
+        with app.app_context():
             result = extract_div_content(url, div_class)
-        if result:  # Check the status code
-            text = result.get_json()
+        if result.status_code == 200:  # Check the status code
+            text = result.json
 
             if text:
                 producer.send('extracted_data', {'job_title': text["job_title"], 'company_name': text["company_name"],'location' : text["location"],'url': url})
                 producer.flush()
+        else:
+            print(result.json)
     
 if __name__ == "__main__":
     producer = create_producer()

@@ -1,6 +1,6 @@
 import torch
 from transformers import pipeline
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 from bs4 import BeautifulSoup
 import requests
 from kafka import KafkaConsumer,KafkaProducer
@@ -39,11 +39,11 @@ def extract_div_content(data, div_class):
         if target_div:
             data = target_div.text.strip()
                 
-            return jsonify({
-                "data": data , "status code": 200
-            })
+            return make_response(jsonify({
+                "data": data
+            }),200)
         else:
-            return jsonify({"error": f"Div with class '{div_class}' not found on the page.", "status code": 404})
+            return make_response(jsonify({"error": f"Div with class '{div_class}' not found on the page."}),404)
 
 
 def create_consumer():
@@ -69,11 +69,13 @@ def consume_messages():
         div_class = message.value['div_class']
         url = message.value['url']
 
-        with app.test_request_context():
-            result = extract_div_content(data, div_class).get_json()
-        if result['status code'] == 200:  # Check the status code
+        with app.app_context():
+            result = extract_div_content(data, div_class).json
+        if result.status_code == 200:  # Check the status code
             producer.send('summerized_data', {'url': url, 'data': summarize(result["data"])})
             produder.flush()
+        else:
+            print(result.json)
 
 if __name__ == "__main__":
     producer = create_producer()
