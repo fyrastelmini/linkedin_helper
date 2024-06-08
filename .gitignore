@@ -6,3 +6,4 @@ dev/*
 venv/
 instance/
 *.ipynb
+*/__pycache__

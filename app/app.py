@@ -66,7 +66,6 @@ app = Flask(__name__)
 
 # Set the maximum file size to 20MB
 app.config["MAX_CONTENT_LENGTH"] = 20 * 1024 * 1024
-#app.config['SERVER_NAME'] = 'localhost:8000'  # Remplacez par votre nom de serveur et port
 
 
 # Handle the RequestEntityTooLarge exception
@@ -175,17 +174,6 @@ def request_view():
 @app.route("/download_csv")
 def download_csv():
     return "not implemented yet"
-    """
-    global df_global
-    # Convert DataFrame to CSV
-    csv_data = BytesIO()
-    df_global.to_csv(csv_data, index=False, sep=";")
-    csv_data.seek(0)
-
-    # Send CSV data as file
-    return send_file(
-        csv_data, mimetype="text/csv", as_attachment=True, download_name="data.csv"
-    )"""
 
 
 if __name__ == "__main__":

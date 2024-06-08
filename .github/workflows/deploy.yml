@@ -33,25 +33,3 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
           aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
-
-      - name: Build and push Docker images
-        env:
-          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-          IMAGE_REPO_NAME: your-ecr-repo-name
-        run: |
-          docker-compose -f docker-compose.yml build
-          docker-compose -f docker-compose.yml push
-
-      - name: Convert Docker Compose to ECS Task Definition
-        run: |
-          ecs-cli configure --cluster your-cluster-name --region us-west-2
-
-      - name: Deploy to ECS
-        env:
-          AWS_REGION: us-west-2
-          CLUSTER_NAME: your-cluster-name
-          SERVICE_NAME: your-service-name
-          TASK_DEFINITION: your-task-definition-family
-        run: |
-          ecs-cli compose --file docker-compose.yml service up
-          ecs-cli compose --file docker-compose.yml service scale 1
