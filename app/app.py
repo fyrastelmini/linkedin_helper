@@ -8,17 +8,11 @@ from flask import (
     abort,
     jsonify,
 )
-import pandas as pd
-from bs4 import BeautifulSoup
 import requests
-from io import BytesIO
 from werkzeug.exceptions import RequestEntityTooLarge
-from database import db, ma, Job, JobSchema
-from utils import extract_div_content, message_handler
-from database import db, ma, Job, JobSchema, RawData, RawDataSchema, single_Job_data_schema, multiple_Job_data_schema, single_RawData_data_schema, multiple_RawData_data_schema, SummarizedData, SummarizedDataSchema, single_SummarizedData_data_schema, multiple_SummarizedData_data_schema
-from kafka import KafkaProducer
+from utils import message_handler
+from kafka import KafkaProducer, KafkaConsumer
 import json
-import os
 from kafka.errors import NoBrokersAvailable
 import time
 
@@ -33,22 +27,25 @@ def create_producer():
             print("Broker not available, retrying...")
             time.sleep(3)
 
+# Initialize Kafka consumer
+def create_consumer():
+    while True:
+        try:
+            consumer = KafkaConsumer('database_view',
+                                     bootstrap_servers='kafka:9092',
+                                     auto_offset_reset='earliest',
+                                     enable_auto_commit=True,
+                                     group_id='my-group',
+                                     value_deserializer=lambda x: json.loads(x.decode('utf-8')))
+            return consumer
+        except NoBrokersAvailable:
+            print("Broker not available, retrying...")
+            time.sleep(3)
 
 
-
-# Create a global DataFrame to store the data
-df_global = pd.DataFrame(columns=["job_title", "company_name", "location", "URL"])
 
 
 app = Flask(__name__)
-# configure the SQLite database, relative to the app instance folder
-db_file_path = "/etc/volume/project.db"
-#db_file_path = "project.db"
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv('DATABASE_URL')
-
-# Initialize the database with the app
-db.init_app(app)
-ma.init_app(app)
 
 
 # Set the maximum file size to 20MB
@@ -62,11 +59,6 @@ def handle_file_size_too_large():
     if request.method == "POST":
         return redirect(url_for("main", upload="file_too_large"))
     abort(413)
-
-
-
-with app.app_context():
-    db.create_all()
 
 
 # ______________________________ main routes _____________________________________
@@ -92,8 +84,8 @@ def main():
 # Define the upload_csv route
 @app.route("/upload_csv", methods=["POST"])
 def upload_csv():
-    global df_global  # Use the global variable df_global
-
+    return "not implemented yet"
+    """
     # Check if a file was uploaded
     if "file" not in request.files:
         return redirect(url_for("main", upload="no_file"))
@@ -119,6 +111,7 @@ def upload_csv():
         return redirect(url_for("main", upload="error"))
 
     return redirect(url_for("main", upload="success"))
+    """
 
 
 # Define the update_data route
@@ -138,11 +131,10 @@ def update_data():
     # Check if the request was successful
     if response.status_code == 200:
         html_content = response.text
-        new_raw_data = RawData(source=url, raw_data=html_content)
-        db.session.add(new_raw_data)
-        # Send a message to the Kafka topic
-        producer.send('new_raw_data', {'url': url, 'div_class': div_class})
+        # Send a message to the Kafka topics
+        producer.send('new_raw_data', {'url': url, 'div_class': div_class,'raw_data':html_content})
         producer.send('new_raw_data_to_summarize', {'url': url, 'data': html_content, 'div_class': div_class_summarize})
+        producer.flush()
         return redirect(url_for("main", upload="ok"))
     return redirect(url_for("main", upload="error"))
     
@@ -154,14 +146,17 @@ def view_db():
     #result = multiple_Job_data_schema.dump(all_jobs)
     #all_raw = RawData.query.all()
     #result = multiple_RawData_data_schema.dump(all_raw)
-    all_summarized = SummarizedData.query.all()
-    result = multiple_SummarizedData_data_schema.dump(all_summarized)
-    return jsonify(result)
+    #all_summarized = SummarizedData.query.all()
+    #result = multiple_SummarizedData_data_schema.dump(all_summarized)
+    #return jsonify(result)
+    return "not implemented yet"
 
 
 # Define the download_csv route
 @app.route("/download_csv")
 def download_csv():
+    return "not implemented yet"
+    """
     global df_global
     # Convert DataFrame to CSV
     csv_data = BytesIO()
@@ -171,7 +166,7 @@ def download_csv():
     # Send CSV data as file
     return send_file(
         csv_data, mimetype="text/csv", as_attachment=True, download_name="data.csv"
-    )
+    )"""
 
 
 if __name__ == "__main__":

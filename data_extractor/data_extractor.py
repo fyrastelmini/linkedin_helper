@@ -1,18 +1,22 @@
 from flask import Flask, request, jsonify
 from bs4 import BeautifulSoup
 import requests
-from kafka import KafkaConsumer
+from kafka import KafkaConsumer,KafkaProducer
 from kafka.errors import NoBrokersAvailable
 import json
-from database import Job,db,ma
 import os
 import time
 
-
+def create_producer():
+    while True:
+        try:
+            producer = KafkaProducer(bootstrap_servers='kafka:9092',
+                                     value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+            return producer
+        except NoBrokersAvailable:
+            print("Broker not available, retrying...")
+            time.sleep(3)
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
-db.init_app(app)
-ma.init_app(app)
 
 def extract_div_content(url, div_class):
 
@@ -76,13 +80,10 @@ def consume_messages():
             text = result.get_json()
 
             if text:
-                new_job = Job(text["job_title"], text["company_name"], text["location"], text["URL"])
-                with app.app_context():
-                    db.session.add(new_job)
-                    db.session.commit()
+                producer.send('extracted_data', {'job_title': text["job_title"], 'company_name': text["company_name"],'location' : text["location"],'url': url})
+                producer.flush()
     
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
+    producer = create_producer()
     consume_messages()
     app.run(debug=True, host='0.0.0.0', port=5000)

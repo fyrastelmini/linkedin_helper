@@ -7,7 +7,6 @@ WORKDIR /app
 # Add the current directory contents into the container at /app
 ADD ./app.py /app/app.py
 ADD ./utils.py /app/utils.py
-ADD ./database.py /app/database.py
 ADD ./requirements.txt /app/requirements.txt
 ADD ./templates /app/templates
 

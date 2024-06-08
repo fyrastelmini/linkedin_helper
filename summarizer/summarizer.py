@@ -3,10 +3,9 @@ from transformers import pipeline
 from flask import Flask, request, jsonify
 from bs4 import BeautifulSoup
 import requests
-from kafka import KafkaConsumer
+from kafka import KafkaConsumer,KafkaProducer
 from kafka.errors import NoBrokersAvailable
 import json
-from database import SummarizedData,db,ma
 import os
 import time
 
@@ -15,7 +14,15 @@ summarizer = pipeline(
     "pszemraj/long-t5-tglobal-base-16384-book-summary",
     device=0 if torch.cuda.is_available() else -1,
 )
-
+def create_producer():
+    while True:
+        try:
+            producer = KafkaProducer(bootstrap_servers='kafka:9092',
+                                     value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+            return producer
+        except NoBrokersAvailable:
+            print("Broker not available, retrying...")
+            time.sleep(3)
 
 
 def summarize(text: str) -> str:
@@ -23,9 +30,6 @@ def summarize(text: str) -> str:
     return summarizer(long_text)[0]["summary_text"]
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
-db.init_app(app)
-ma.init_app(app)
 
 def extract_div_content(data, div_class):
     if True:
@@ -36,10 +40,10 @@ def extract_div_content(data, div_class):
             data = target_div.text.strip()
                 
             return jsonify({
-                "data": data 
+                "data": data , "status code": 200
             })
         else:
-            return jsonify({"error": f"Div with class '{div_class}' not found on the page."}), 404
+            return jsonify({"error": f"Div with class '{div_class}' not found on the page.", "status code": 404})
 
 
 def create_consumer():
@@ -66,20 +70,13 @@ def consume_messages():
         url = message.value['url']
 
         with app.test_request_context():
-            result = extract_div_content(data, div_class)
-        if result.status_code == 200:  # Check the status code
-            text = result.get_json()
-
-            if text:
-                new_SummarizedData = SummarizedData(url,summarize(text["data"]))
-                with app.app_context():
-                    db.session.add(new_SummarizedData)
-                    db.session.commit()
-                print(text)
+            result = extract_div_content(data, div_class).get_json()
+        if result['status code'] == 200:  # Check the status code
+            producer.send('summerized_data', {'url': url, 'data': summarize(result["data"])})
+            produder.flush()
 
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
+    producer = create_producer()
     consume_messages()
     app.run(debug=True, host='0.0.0.0',port=4040)
 

@@ -4,7 +4,6 @@ WORKDIR /summarizer
 
 ADD ./summarizer.py /summarizer/summarizer.py
 ADD ./requirements.txt /summarizer/requirements.txt
-ADD ./database.py /summarizer/database.py
 
 
 RUN pip install --no-cache-dir -r requirements.txt

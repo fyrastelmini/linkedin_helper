@@ -5,28 +5,22 @@ services:
       - app-network
     ports:
       - "8000:8000"
-    volumes:
-      - type: volume
-        source: volume-db
-        target: /etc/volume
-    environment:
-      - DATABASE_URL=sqlite:////etc/volume/project.db
   data_extractor:
     build: ./data_extractor
     networks:
       - app-network
-    volumes:
-      - type: volume
-        source: volume-db
-        target: /etc/volume
-    environment:
-      - DATABASE_URL=sqlite:////etc/volume/project.db
     ports:
       - "5000:5000"
   summarizer:
     build: ./summarizer
     networks:
       - app-network
+    ports:
+      - "4040:4040"
+  database_handler:
+    build: ./database_handler
+    networks:
+      - app-network
     volumes:
       - type: volume
         source: volume-db
@@ -34,7 +28,7 @@ services:
     environment:
       - DATABASE_URL=sqlite:////etc/volume/project.db
     ports:
-      - "4040:4040"
+      - "4444:4444"
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     environment:

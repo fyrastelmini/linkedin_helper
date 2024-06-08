@@ -10,7 +10,7 @@ format:
 	black *.py
 
 lint:
-	pylint --disable=R,C app.py
+	pylint --disable=R,C */*.py
 
 run:
 	docker run -dp 127.0.0.1:8080:8080 --mount type=volume,src=volume-db,dst=/etc/volume linkedinhelper:latest
