@@ -65,14 +65,16 @@ def consume_messages():
     consumer = create_consumer()
 
     for message in consumer:
+        print(f"Received message: {message.value}")
         data = message.value['data']
         div_class = message.value['div_class']
         url = message.value['url']
 
         with app.app_context():
-            result = extract_div_content(data, div_class).json
+            result = extract_div_content(data, div_class)
         if result.status_code == 200:  # Check the status code
-            producer.send('summerized_data', {'url': url, 'data': summarize(result["data"])})
+            content=result.json
+            producer.send('summerized_data', {'url': url, 'data': summarize(content["data"])})
             produder.flush()
         else:
             print(result.json)

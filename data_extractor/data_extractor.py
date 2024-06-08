@@ -72,6 +72,7 @@ def consume_messages():
     consumer = create_consumer()
 
     for message in consumer:
+        print(f"Received message: {message.value}")
         url = message.value['url']
         div_class = message.value['div_class']
         with app.app_context():

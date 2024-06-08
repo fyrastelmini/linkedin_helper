@@ -6,7 +6,7 @@ from flask import (
     url_for,
     send_file,
     abort,
-    jsonify,
+    jsonify,Response
 )
 import requests
 from werkzeug.exceptions import RequestEntityTooLarge
@@ -15,6 +15,8 @@ from kafka import KafkaProducer, KafkaConsumer
 import json
 from kafka.errors import NoBrokersAvailable
 import time
+import threading
+
 
 # Initialize Kafka producer
 def create_producer():
@@ -41,15 +43,27 @@ def create_consumer():
         except NoBrokersAvailable:
             print("Broker not available, retrying...")
             time.sleep(3)
+def consume_messages():
+    consumer = create_consumer()
+
+    for message in consumer:
+        topic = message.topic
+        with app.app_context():
+            if topic == 'database_view':
+                data=message.value
+                global last_db_view
+                last_db_view = data
+                consumer.commit()
 
 
-
+last_db_view = None
 
 app = Flask(__name__)
 
 
 # Set the maximum file size to 20MB
 app.config["MAX_CONTENT_LENGTH"] = 20 * 1024 * 1024
+#app.config['SERVER_NAME'] = 'localhost:8000'  # Remplacez par votre nom de serveur et port
 
 
 # Handle the RequestEntityTooLarge exception
@@ -140,17 +154,18 @@ def update_data():
     
 
 
-@app.route("/view", methods=["GET"])
+@app.route("/view_db", methods=["GET"])
 def view_db():
-    #all_jobs = Job.query.all()
-    #result = multiple_Job_data_schema.dump(all_jobs)
-    #all_raw = RawData.query.all()
-    #result = multiple_RawData_data_schema.dump(all_raw)
-    #all_summarized = SummarizedData.query.all()
-    #result = multiple_SummarizedData_data_schema.dump(all_summarized)
-    #return jsonify(result)
-    return "not implemented yet"
-
+    global last_db_view
+    if last_db_view is None:
+        return Response("Data not ready", status=202)
+    else:
+        return jsonify(last_db_view)
+@app.route("/request_view", methods=["GET"])
+def request_view():
+    producer.send('get_view', {})
+    producer.flush()
+    return redirect(url_for('view_db'))
 
 # Define the download_csv route
 @app.route("/download_csv")
@@ -171,4 +186,6 @@ def download_csv():
 
 if __name__ == "__main__":
     producer = create_producer()
+    #consumer_thread = threading.Thread(target=consume_messages)
+    #consumer_thread.start()
     app.run(host="0.0.0.0", port=8000, debug=True)
