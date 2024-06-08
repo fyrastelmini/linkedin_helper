@@ -8,7 +8,7 @@ LinkedIn Data Extractor is a tool that allows you to extract data from LinkedIn 
 ## Installation [Obsolete, just run 'docker-compose up' on main directory]
 
 Clone this repository to your local machine:
-
+testing ruleset
 ```bash
 git clone https://github.com/fyrastelmini/linkedin_helper.git
 ```
