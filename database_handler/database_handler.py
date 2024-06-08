@@ -3,7 +3,7 @@ from flask import Flask
 import os
 import time
 import json
-
+from sqlalchemy.exc import IntegrityError
 from kafka.errors import NoBrokersAvailable
 from kafka import KafkaConsumer, KafkaProducer
 app = Flask(__name__)
@@ -39,35 +39,47 @@ def consume_messages():
     consumer = create_consumer()
 
     for message in consumer:
-        print(f"Received message: {message.value}")
+        print(f"Received message")
         topic = message.topic
         with app.app_context():
             if topic == 'extracted_data':
                 new_job = database.Job(message.value["job_title"], message.value["company_name"], message.value["location"], message.value["url"])
+                try:
+                    database.db.session.add(new_job)
+                    database.db.session.commit()
+                except IntegrityError:
+                    database.db.session.rollback()
                 
-                database.db.session.add(new_job)
-                database.db.session.commit()
                 consumer.commit()
             elif topic == 'summerized_data':
                 new_SummarizedData = database.SummarizedData(message.value["url"],message.value["data"])
-                
-                database.db.session.add(new_SummarizedData)
-                database.db.session.commit()
+                try:
+                    database.db.session.add(new_SummarizedData)
+                    database.db.session.commit()
+                except IntegrityError:
+                    database.db.session.rollback()
                 consumer.commit()
             elif topic == 'new_raw_data':
                 new_raw_data = database.RawData(message.value["url"], message.value["raw_data"])
-                
-                database.db.session.add(new_raw_data)
-                database.db.session.commit()
+                try:
+                    database.db.session.add(new_raw_data)
+                    database.db.session.commit()
+                except IntegrityError:
+                    database.db.session.rollback()
                 consumer.commit()
             elif topic == 'get_view':
-                # Récupérer les données de la base de données
+                
                 data = database.db.session.query(database.Job).all()
-                # Formater les données pour la visualisation
-                formatted_data = [item.serialize() for item in data]
-                # Envoyer les données
+                
+                formatted_data = database.multiple_Job_data_schema.dump(data)
+                summarized_data = database.db.session.query(database.SummarizedData).all()
+                formatted_summarized_data = database.multiple_SummarizedData_data_schema.dump(summarized_data)
                 producer = create_producer()
-                producer.send('database_view', value=formatted_data)
+                combined_data = {
+                'formatted_data': formatted_data,
+                'formatted_summarized_data': formatted_summarized_data
+                }
+                producer.send('database_view', value=combined_data)
                 producer.flush()
                 producer.close()
                 consumer.commit()

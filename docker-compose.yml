@@ -5,18 +5,27 @@ services:
       - app-network
     ports:
       - "8000:8000"
+    depends_on:
+      - kafka
+      - database_handler
+      - summarizer
+      - data_extractor
   data_extractor:
     build: ./data_extractor
     networks:
       - app-network
     ports:
       - "5000:5000"
+    depends_on:
+      - kafka
   summarizer:
     build: ./summarizer
     networks:
       - app-network
     ports:
       - "4040:4040"
+    depends_on:
+      - kafka
   database_handler:
     build: ./database_handler
     networks:
@@ -29,6 +38,8 @@ services:
       - DATABASE_URL=sqlite:////etc/volume/project.db
     ports:
       - "4444:4444"
+    depends_on:
+      - kafka
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     environment:

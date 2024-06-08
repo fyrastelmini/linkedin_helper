@@ -12,6 +12,7 @@ def create_producer():
         try:
             producer = KafkaProducer(bootstrap_servers='kafka:9092',
                                      value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+            print("Data Extractor producer created successfully")
             return producer
         except NoBrokersAvailable:
             print("Broker not available, retrying...")
@@ -62,6 +63,7 @@ def create_consumer():
                                      enable_auto_commit=True,
                                      group_id='my-group',
                                      value_deserializer=lambda x: json.loads(x.decode('utf-8')))
+            print("Data Extractor consumer created successfully")
             return consumer
         except NoBrokersAvailable:
             print("Broker not available, retrying...")
@@ -72,7 +74,7 @@ def consume_messages():
     consumer = create_consumer()
 
     for message in consumer:
-        print(f"Received message: {message.value}")
+        print(f"Received message")
         url = message.value['url']
         div_class = message.value['div_class']
         with app.app_context():
@@ -83,6 +85,7 @@ def consume_messages():
             if text:
                 producer.send('extracted_data', {'job_title': text["job_title"], 'company_name': text["company_name"],'location' : text["location"],'url': url})
                 producer.flush()
+                print("Sent extracted data to kafka topic")
         else:
             print(result.json)
     

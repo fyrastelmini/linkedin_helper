@@ -19,6 +19,7 @@ def create_producer():
         try:
             producer = KafkaProducer(bootstrap_servers='kafka:9092',
                                      value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+            print("Summerizer producer created successfully")
             return producer
         except NoBrokersAvailable:
             print("Broker not available, retrying...")
@@ -55,6 +56,7 @@ def create_consumer():
                                      enable_auto_commit=True,
                                      group_id='my-group',
                                      value_deserializer=lambda x: json.loads(x.decode('utf-8')))
+            print("Summerizer consumer created successfully")
             return consumer
         except NoBrokersAvailable:
             print("Broker not available, retrying...")
@@ -65,7 +67,7 @@ def consume_messages():
     consumer = create_consumer()
 
     for message in consumer:
-        print(f"Received message: {message.value}")
+        print(f"Received message")
         data = message.value['data']
         div_class = message.value['div_class']
         url = message.value['url']
@@ -75,7 +77,8 @@ def consume_messages():
         if result.status_code == 200:  # Check the status code
             content=result.json
             producer.send('summerized_data', {'url': url, 'data': summarize(content["data"])})
-            produder.flush()
+            producer.flush()
+            print("Sent summarized data to kafka topic")
         else:
             print(result.json)
 

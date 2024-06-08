@@ -24,6 +24,7 @@ def create_producer():
         try:
             producer = KafkaProducer(bootstrap_servers='kafka:9092',
                                      value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+            print("Producer created successfully")
             return producer
         except NoBrokersAvailable:
             print("Broker not available, retrying...")
@@ -39,6 +40,7 @@ def create_consumer():
                                      enable_auto_commit=True,
                                      group_id='my-group',
                                      value_deserializer=lambda x: json.loads(x.decode('utf-8')))
+            print("Consumer created successfully")
             return consumer
         except NoBrokersAvailable:
             print("Broker not available, retrying...")
@@ -54,6 +56,7 @@ def consume_messages():
                 global last_db_view
                 last_db_view = data
                 consumer.commit()
+
 
 
 last_db_view = None
@@ -149,6 +152,7 @@ def update_data():
         producer.send('new_raw_data', {'url': url, 'div_class': div_class,'raw_data':html_content})
         producer.send('new_raw_data_to_summarize', {'url': url, 'data': html_content, 'div_class': div_class_summarize})
         producer.flush()
+        print("Sent data to Kafka topics")
         return redirect(url_for("main", upload="ok"))
     return redirect(url_for("main", upload="error"))
     
@@ -186,6 +190,6 @@ def download_csv():
 
 if __name__ == "__main__":
     producer = create_producer()
-    #consumer_thread = threading.Thread(target=consume_messages)
-    #consumer_thread.start()
+    consumer_thread = threading.Thread(target=consume_messages)
+    consumer_thread.start()
     app.run(host="0.0.0.0", port=8000, debug=True)

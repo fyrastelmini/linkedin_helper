@@ -33,7 +33,7 @@ multiple_Job_data_schema = JobSchema(many=True)
 class RawData(db.Model):
     __tablename__ = "raw_data_table"
     id = db.Column(db.Integer, primary_key=True)
-    source = db.Column(db.String)
+    source = db.Column(db.String,unique=True)
     raw_data = db.Column(db.Text)
 
     def __init__(self,source, raw_data) -> None:
@@ -54,7 +54,7 @@ multiple_RawData_data_schema = RawDataSchema(many=True)
 class SummarizedData(db.Model):
     __tablename__ = "summarized_data_table"
     id = db.Column(db.Integer, primary_key=True)
-    source = db.Column(db.String)
+    source = db.Column(db.String,unique=True)
     summarized_data = db.Column(db.Text)
 
     def __init__(self,source, summarized_data) -> None:
