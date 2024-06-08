@@ -1,5 +1,5 @@
 # LinkedIn Data Extractor
-![Test app](https://github.com/fyrastelmini/linkedin_helper/actions/workflows/app.yml/badge.svg)
+![Test app](https://github.com/fyrastelmini/linkedin_helper/actions/workflows/main_app.yml/badge.svg)
 ![Test extractor microservice](https://github.com/fyrastelmini/linkedin_helper/actions/workflows/data_extractor.yml/badge.svg)
 ![Deploy](https://github.com/fyrastelmini/linkedin_helper/actions/workflows/docker-image.yml/badge.svg)
 
