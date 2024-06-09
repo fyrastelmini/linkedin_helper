@@ -1,0 +1,35 @@
+services:
+  source_db:
+    image: postgres:latest
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: source_user
+      POSTGRES_PASSWORD: source_password
+      POSTGRES_DB: source_db
+    networks:
+      - elt_network
+  target_db:
+    image: postgres:latest
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: target_user
+      POSTGRES_PASSWORD: target_password
+      POSTGRES_DB: target_db
+    networks:
+      - elt_network
+
+  elt_script:
+    build: ./elt_script
+    command: ["python", "elt_script.py"]
+    depends_on:
+      - source_db
+      - target_db
+    networks:
+      - elt_network
+
+
+networks:
+  elt_network:
+    driver: bridge
