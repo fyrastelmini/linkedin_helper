@@ -6,8 +6,26 @@ import json
 from sqlalchemy.exc import IntegrityError
 from kafka.errors import NoBrokersAvailable
 from kafka import KafkaConsumer, KafkaProducer
+from sqlalchemy import create_engine
+from sqlalchemy.exc import OperationalError
+
+def wait_for_db(db_uri):
+    engine = create_engine(db_uri)
+    while True:
+        try:
+            connection = engine.connect()
+            connection.close()
+            break
+        except OperationalError:
+            print("Database not available, retrying...")
+            time.sleep(3)
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+
+# Wait for the database to be available
+wait_for_db(app.config['SQLALCHEMY_DATABASE_URI'])
+
 database.db.init_app(app)
 database.ma.init_app(app)
 
@@ -79,6 +97,7 @@ def consume_messages():
                 'formatted_data': formatted_data,
                 'formatted_summarized_data': formatted_summarized_data
                 }
+                print(combined_data)
                 producer.send('database_view', value=combined_data)
                 producer.flush()
                 producer.close()

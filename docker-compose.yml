@@ -1,4 +1,12 @@
 services:
+  source_db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: youruser
+      POSTGRES_PASSWORD: yourpassword
+      POSTGRES_DB: yourdatabase
+    volumes:
+      - db_data:/var/lib/postgresql/data
   app:
     build: ./app
     networks:
@@ -30,23 +38,19 @@ services:
     build: ./database_handler
     networks:
       - app-network
-    volumes:
-      - type: volume
-        source: volume-db
-        target: /etc/volume
     environment:
-      - DATABASE_URL=sqlite:////etc/volume/project.db
+      - DATABASE_URL=postgresql://youruser:yourpassword@source_db:5432/yourdatabase
+    depends_on:
+      - source_db
+      - kafka
     ports:
       - "4444:4444"
-    depends_on:
-      - kafka
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
     networks:
       - app-network
-
   kafka:
     image: confluentinc/cp-kafka:latest
     depends_on:
@@ -58,7 +62,7 @@ services:
     networks:
       - app-network
 volumes:
-  volume-db:
+  db_data:
 networks:
   app-network:
     driver: bridge

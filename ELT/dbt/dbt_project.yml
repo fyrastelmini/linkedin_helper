@@ -1,0 +1,17 @@
+name: 'linkedin_helper'
+version: '1.0'
+config-version: 2
+
+profile: 'default'
+
+target: 'dev'
+
+outputs:
+  dev:
+    type: 'postgres'
+    host: 'target_db'
+    user: 'target_user'
+    pass: 'target_password'
+    dbname: 'target_db'
+    schema: 'public'
+    port: 5432
