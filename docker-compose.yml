@@ -7,6 +7,8 @@ services:
       POSTGRES_DB: yourdatabase
     volumes:
       - db_data:/var/lib/postgresql/data
+    networks:
+      - app-network
   app:
     build: ./app
     networks:
@@ -14,10 +16,8 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - kafka
-      - database_handler
-      - summarizer
       - data_extractor
+      - summarizer
   data_extractor:
     build: ./data_extractor
     networks:
@@ -26,6 +26,7 @@ services:
       - "5000:5000"
     depends_on:
       - kafka
+      - database_handler
   summarizer:
     build: ./summarizer
     networks:
@@ -34,6 +35,7 @@ services:
       - "4040:4040"
     depends_on:
       - kafka
+      - database_handler
   database_handler:
     build: ./database_handler
     networks:
