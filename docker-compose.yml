@@ -2,13 +2,48 @@ services:
   source_db:
     image: postgres:latest
     environment:
-      POSTGRES_USER: youruser
-      POSTGRES_PASSWORD: yourpassword
-      POSTGRES_DB: yourdatabase
+      POSTGRES_USER: source_user
+      POSTGRES_PASSWORD: source_password
+      POSTGRES_DB: source_db
+    ports:
+      - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
     networks:
       - app-network
+      - elt_network
+  target_db:
+    image: postgres:latest
+    ports:
+      - "5434:5434"
+    environment:
+      POSTGRES_USER: target_user
+      POSTGRES_PASSWORD: target_password
+      POSTGRES_DB: target_db
+    networks:
+      - elt_network
+    volumes:
+      - transformed_data:/var/lib/postgresql/data
+      - ./init_db.sh:/docker-entrypoint-initdb.d/init_db.sh
+  dbt:
+    image: ghcr.io/dbt-labs/dbt-postgres:1.7.16
+    command:
+      ["run",
+      "--profiles-dir",
+      "/dbt/profiles",
+      "--project-dir",
+      "/dbt"
+      ]
+    networks:
+      - elt_network
+    volumes:
+      - /workspaces/linkedin_helper/dbt:/dbt
+    depends_on:
+      - source_db
+      - target_db
+    environment:
+      DBT_PROFILE: default
+      DBT_TARGET: dev
   app:
     build: ./app
     networks:
@@ -41,7 +76,7 @@ services:
     networks:
       - app-network
     environment:
-      - DATABASE_URL=postgresql://youruser:yourpassword@source_db:5432/yourdatabase
+      - DATABASE_URL=postgresql://source_user:source_password@source_db:5432/source_db
     depends_on:
       - source_db
       - kafka
@@ -65,6 +100,9 @@ services:
       - app-network
 volumes:
   db_data:
+  transformed_data:
 networks:
   app-network:
+    driver: bridge
+  elt_network:
     driver: bridge

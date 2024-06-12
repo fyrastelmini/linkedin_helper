@@ -7,3 +7,4 @@ venv/
 instance/
 *.ipynb
 */__pycache__
+ELT/dbt-env/

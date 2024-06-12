@@ -1,0 +1,49 @@
+[0m23:36:19.893939 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x73dff6abe860>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x73dff51ab250>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x73dff51ab1f0>]}
+
+
+============================== 23:36:19.898813 | 5ff3362e-5d5e-4345-9f1b-e23857c68aad ==============================
+[0m23:36:19.898813 [info ] [MainThread]: Running with dbt=1.8.2
+[0m23:36:19.899646 [debug] [MainThread]: running dbt with arguments {'printer_width': '80', 'indirect_selection': 'eager', 'write_json': 'True', 'log_cache_events': 'False', 'partial_parse': 'True', 'cache_selected_only': 'False', 'warn_error': 'None', 'version_check': 'True', 'fail_fast': 'False', 'log_path': 'logs', 'debug': 'False', 'profiles_dir': '/home/codespace/.dbt', 'use_colors': 'True', 'use_experimental_parser': 'False', 'no_print': 'None', 'quiet': 'False', 'warn_error_options': 'WarnErrorOptions(include=[], exclude=[])', 'static_parser': 'True', 'introspect': 'True', 'log_format': 'default', 'target_path': 'None', 'invocation_command': 'dbt init', 'send_anonymous_usage_stats': 'True'}
+[0m23:36:36.156981 [debug] [MainThread]: Starter project path: /workspaces/linkedin_helper/ELT/dbt-env/lib/python3.10/site-packages/dbt/include/starter_project
+[0m23:36:36.167187 [info ] [MainThread]: 
+Your new dbt project "linkedin_helper_elt" was created!
+
+For more information on how to configure the profiles.yml file,
+please consult the dbt documentation here:
+
+  https://docs.getdbt.com/docs/configure-your-profile
+
+One more thing:
+
+Need help? Don't hesitate to reach out to us via GitHub issues or on Slack:
+
+  https://community.getdbt.com/
+
+Happy modeling!
+
+[0m23:36:36.168103 [info ] [MainThread]: Setting up your profile.
+[0m23:37:13.108240 [error] [MainThread]: Encountered an error:
+[Errno 13] Permission denied: '/home/codespace/.dbt/profiles.yml'
+[0m23:37:13.110046 [error] [MainThread]: Traceback (most recent call last):
+  File "/workspaces/linkedin_helper/ELT/dbt-env/lib/python3.10/site-packages/dbt/cli/requires.py", line 138, in wrapper
+    result, success = func(*args, **kwargs)
+  File "/workspaces/linkedin_helper/ELT/dbt-env/lib/python3.10/site-packages/dbt/cli/requires.py", line 101, in wrapper
+    return func(*args, **kwargs)
+  File "/workspaces/linkedin_helper/ELT/dbt-env/lib/python3.10/site-packages/dbt/cli/main.py", line 470, in init
+    results = task.run()
+  File "/workspaces/linkedin_helper/ELT/dbt-env/lib/python3.10/site-packages/dbt/task/init.py", line 347, in run
+    self.setup_profile(profile_name)
+  File "/workspaces/linkedin_helper/ELT/dbt-env/lib/python3.10/site-packages/dbt/task/init.py", line 263, in setup_profile
+    self.create_profile_from_target(adapter, profile_name=profile_name)
+  File "/workspaces/linkedin_helper/ELT/dbt-env/lib/python3.10/site-packages/dbt/task/init.py", line 180, in create_profile_from_target
+    self.create_profile_from_profile_template(profile_template, profile_name)
+  File "/workspaces/linkedin_helper/ELT/dbt-env/lib/python3.10/site-packages/dbt/task/init.py", line 167, in create_profile_from_profile_template
+    self.write_profile(profile, profile_name)
+  File "/workspaces/linkedin_helper/ELT/dbt-env/lib/python3.10/site-packages/dbt/task/init.py", line 157, in write_profile
+    with open(profiles_filepath, "w") as f:
+PermissionError: [Errno 13] Permission denied: '/home/codespace/.dbt/profiles.yml'
+
+[0m23:37:13.111530 [debug] [MainThread]: Resource report: {"command_name": "init", "command_wall_clock_time": 53.28284, "process_user_time": 1.478016, "process_kernel_time": 0.099096, "process_mem_max_rss": "90248", "process_in_blocks": "15480", "process_out_blocks": "72", "command_success": false}
+[0m23:37:13.112351 [debug] [MainThread]: Command `dbt init` failed at 23:37:13.112234 after 53.28 seconds
+[0m23:37:13.113093 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x73dff6abe860>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x73dff6e29f60>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x73dff6e2a890>]}
+[0m23:37:13.113705 [debug] [MainThread]: Flushing usage events
