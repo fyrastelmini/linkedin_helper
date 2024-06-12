@@ -6,7 +6,7 @@ services:
       POSTGRES_PASSWORD: source_password
       POSTGRES_DB: source_db
     ports:
-      - "5432:5432"
+      - "5434:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
     networks:
@@ -15,7 +15,7 @@ services:
   target_db:
     image: postgres:latest
     ports:
-      - "5434:5434"
+      - "5433:5432"
     environment:
       POSTGRES_USER: target_user
       POSTGRES_PASSWORD: target_password
@@ -43,7 +43,7 @@ services:
       - target_db
     environment:
       DBT_PROFILE: default
-      DBT_TARGET: dev
+      DBT_TARGET: source
   app:
     build: ./app
     networks:

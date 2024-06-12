@@ -1,5 +1,5 @@
 default:
-  target: dev
+  target: source
   outputs:
     dev:
       type: postgres
@@ -8,7 +8,7 @@ default:
       pass: target_password
       dbname: target_db
       schema: public
-      port: 5434
+      port: 5432
     source:
       type: postgres
       host: source_db
