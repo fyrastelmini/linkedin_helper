@@ -1,0 +1,8 @@
+name: 'linkedin_helper'
+version: '1.0'
+config-version: 2
+profile: 'default'
+models:
+  linkedin_helper:
+    # This assumes that your jobs_table_joined.sql is in the models directory
+    - models

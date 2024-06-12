@@ -1,4 +1,49 @@
 services:
+  source_db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: source_user
+      POSTGRES_PASSWORD: source_password
+      POSTGRES_DB: source_db
+    ports:
+      - "5434:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+      - elt_network
+  target_db:
+    image: postgres:latest
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: target_user
+      POSTGRES_PASSWORD: target_password
+      POSTGRES_DB: target_db
+    networks:
+      - elt_network
+    volumes:
+      - transformed_data:/var/lib/postgresql/data
+      - ./init_db.sh:/docker-entrypoint-initdb.d/init_db.sh
+  dbt:
+    image: ghcr.io/dbt-labs/dbt-postgres:1.7.16
+    command:
+      ["run",
+      "--profiles-dir",
+      "/dbt/profiles",
+      "--project-dir",
+      "/dbt"
+      ]
+    networks:
+      - elt_network
+    volumes:
+      - /workspaces/linkedin_helper/dbt:/dbt
+    depends_on:
+      - source_db
+      - target_db
+    environment:
+      DBT_PROFILE: default
+      DBT_TARGET: source
   app:
     build: ./app
     networks:
@@ -6,10 +51,8 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - kafka
-      - database_handler
-      - summarizer
       - data_extractor
+      - summarizer
   data_extractor:
     build: ./data_extractor
     networks:
@@ -18,6 +61,7 @@ services:
       - "5000:5000"
     depends_on:
       - kafka
+      - database_handler
   summarizer:
     build: ./summarizer
     networks:
@@ -26,27 +70,24 @@ services:
       - "4040:4040"
     depends_on:
       - kafka
+      - database_handler
   database_handler:
     build: ./database_handler
     networks:
       - app-network
-    volumes:
-      - type: volume
-        source: volume-db
-        target: /etc/volume
     environment:
-      - DATABASE_URL=sqlite:////etc/volume/project.db
+      - DATABASE_URL=postgresql://source_user:source_password@source_db:5432/source_db
+    depends_on:
+      - source_db
+      - kafka
     ports:
       - "4444:4444"
-    depends_on:
-      - kafka
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
     networks:
       - app-network
-
   kafka:
     image: confluentinc/cp-kafka:latest
     depends_on:
@@ -58,7 +99,10 @@ services:
     networks:
       - app-network
 volumes:
-  volume-db:
+  db_data:
+  transformed_data:
 networks:
   app-network:
+    driver: bridge
+  elt_network:
     driver: bridge
