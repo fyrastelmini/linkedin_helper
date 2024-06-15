@@ -16,7 +16,7 @@ import json
 from kafka.errors import NoBrokersAvailable
 import time
 import threading
-
+import psycopg2
 
 # Initialize Kafka producer
 def create_producer():
@@ -67,7 +67,17 @@ app = Flask(__name__)
 # Set the maximum file size to 20MB
 app.config["MAX_CONTENT_LENGTH"] = 20 * 1024 * 1024
 
-
+def get_db_content():
+    conn = psycopg2.connect(
+        host="target_db",
+        database="target_db",
+        user="target_user",
+        password="target_password"
+    )
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM jobs_table_joined")  # replace "your_table" with your actual table name
+    rows = cur.fetchall()
+    return rows
 # Handle the RequestEntityTooLarge exception
 @app.errorhandler(RequestEntityTooLarge)
 def handle_file_size_too_large():
@@ -157,18 +167,11 @@ def update_data():
     
 
 
-@app.route("/view_db", methods=["GET"])
-def view_db():
-    global last_db_view
-    if last_db_view is None:
-        return Response("Data not ready", status=202)
-    else:
-        return jsonify(last_db_view)
+
 @app.route("/request_view", methods=["GET"])
 def request_view():
-    producer.send('get_view', {})
-    producer.flush()
-    return redirect(url_for('view_db'))
+    content = get_db_content()
+    return render_template('database_view.html', content=content)
 
 # Define the download_csv route
 @app.route("/download_csv")
