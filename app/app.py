@@ -11,11 +11,10 @@ from flask import (
 import requests
 from werkzeug.exceptions import RequestEntityTooLarge
 from utils import message_handler
-from kafka import KafkaProducer, KafkaConsumer
+from kafka import KafkaProducer
 import json
 from kafka.errors import NoBrokersAvailable
 import time
-import threading
 import psycopg2
 
 # Initialize Kafka producer
@@ -29,37 +28,6 @@ def create_producer():
         except NoBrokersAvailable:
             print("Broker not available, retrying...")
             time.sleep(3)
-
-# Initialize Kafka consumer
-def create_consumer():
-    while True:
-        try:
-            consumer = KafkaConsumer('database_view',
-                                     bootstrap_servers='kafka:9092',
-                                     auto_offset_reset='earliest',
-                                     enable_auto_commit=True,
-                                     group_id='my-group',
-                                     value_deserializer=lambda x: json.loads(x.decode('utf-8')))
-            print("Consumer created successfully")
-            return consumer
-        except NoBrokersAvailable:
-            print("Broker not available, retrying...")
-            time.sleep(3)
-def consume_messages():
-    consumer = create_consumer()
-
-    for message in consumer:
-        topic = message.topic
-        with app.app_context():
-            if topic == 'database_view':
-                data=message.value
-                global last_db_view
-                last_db_view = data
-                consumer.commit()
-
-
-
-last_db_view = None
 
 app = Flask(__name__)
 
@@ -181,6 +149,4 @@ def download_csv():
 
 if __name__ == "__main__":
     producer = create_producer()
-    consumer_thread = threading.Thread(target=consume_messages)
-    consumer_thread.start()
     app.run(host="0.0.0.0", port=8000, debug=True)

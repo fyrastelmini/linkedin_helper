@@ -46,7 +46,7 @@ def create_consumer():
                                      enable_auto_commit=True,
                                      group_id='my-group',
                                      value_deserializer=lambda x: json.loads(x.decode('utf-8')))
-            consumer.subscribe(['extracted_data', 'summerized_data', 'csv_data','get_view'])
+            consumer.subscribe(['extracted_data', 'summerized_data', 'csv_data'])
             return consumer
         except NoBrokersAvailable:
             print("Broker not available, retrying...")
@@ -84,23 +84,6 @@ def consume_messages():
                     database.db.session.commit()
                 except IntegrityError:
                     database.db.session.rollback()
-                consumer.commit()
-            elif topic == 'get_view':
-                
-                data = database.db.session.query(database.Job).all()
-                
-                formatted_data = database.multiple_Job_data_schema.dump(data)
-                summarized_data = database.db.session.query(database.SummarizedData).all()
-                formatted_summarized_data = database.multiple_SummarizedData_data_schema.dump(summarized_data)
-                producer = create_producer()
-                combined_data = {
-                'formatted_data': formatted_data,
-                'formatted_summarized_data': formatted_summarized_data
-                }
-                print(combined_data)
-                producer.send('database_view', value=combined_data)
-                producer.flush()
-                producer.close()
                 consumer.commit()
 if __name__ == "__main__":
     with app.app_context():

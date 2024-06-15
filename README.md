@@ -1,14 +1,16 @@
 # LinkedIn Data Extractor
 ![Test app](https://github.com/fyrastelmini/linkedin_helper/actions/workflows/main_app.yml/badge.svg)
-[![Database CI](https://github.com/fyrastelmini/linkedin_helper/actions/workflows/database.yml/badge.svg?branch=main&event=branch_protection_rule)](https://github.com/fyrastelmini/linkedin_helper/actions/workflows/database.yml)
+![Database CI](https://github.com/fyrastelmini/linkedin_helper/actions/workflows/database.yml/badge.svg)
 ![Deploy](https://github.com/fyrastelmini/linkedin_helper/actions/workflows/docker-image.yml/badge.svg)
 
-LinkedIn Data Extractor is a tool that allows you to extract data from LinkedIn job postings using a URL.
+LinkedIn Data Extractor is a tool that allows you to extract data from LinkedIn job postings using their URL. The data is ingested from multiple sources (different microservices of this project) into a first postgres database and passes through a fully automated ELT pipeline. The transformed data is then loaded into a second postgres database that communicates with the main application and provides clean views of the data.
+## API Structure
 
-## Installation [Obsolete, just run 'docker-compose up' on main directory]
+## Data Engineering pipeline
 
-Clone this repository to your local machine:
-testing ruleset
+## Running the project
+
+Clone this repository to your local/host machine:
 ```bash
 git clone https://github.com/fyrastelmini/linkedin_helper.git
 ```
@@ -19,19 +21,9 @@ Navigate into the project directory:
 cd linkedin_helper
 ```
 
-Install the necessary dependencies:
+Build and run the containers:
 ```bash
-make install
-```
-
-Run the app locally:
-```bash
-make run
-```
-
-Build using the Dockerfile:
-```bash
-make build
+docker-compose up
 ```
 
 Linting, formatting and testing are also present within the Makefile
@@ -52,7 +44,7 @@ Or just click on the "Create new" button.
 
 Enter the URL of the LinkedIn job posting you want to extract data from. The link should be of this form:
 https://www.linkedin.com/jobs/view/<job_id>/?* or https://www.linkedin.com/jobs/view/<job_id>
-( <job_id> corresponds to a series of numbers )
+( <job_id> is an integer )
 
 Click on "Update Data" to extract the data. A dataframe will be updated within the container with the new lines corresponding to the job's info.
 
