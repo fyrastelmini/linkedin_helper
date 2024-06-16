@@ -17,5 +17,5 @@ def test_main(client):
 
 
 def test_view_db(client):
-    response = client.get('/view_db')
+    response = client.get('/request_view')
     assert response.status_code == 202
