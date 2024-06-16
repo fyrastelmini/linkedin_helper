@@ -5,9 +5,9 @@
 
 LinkedIn Data Extractor is a tool that allows you to extract data from LinkedIn job postings using their URL. The data is ingested from multiple sources (different microservices of this project) into a first postgres database and passes through a fully automated ELT pipeline. The transformed data is then loaded into a second postgres database that communicates with the main application and provides clean views of the data.
 ## API Structure
-
+![Microservices and API structure](images/API diagram.png)
 ## Data Engineering pipeline
-
+![ELT Pipeline](images/ELT.png)
 ## Running the project
 
 Clone this repository to your local/host machine:
