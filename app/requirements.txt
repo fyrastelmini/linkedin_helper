@@ -7,3 +7,4 @@ SQLAlchemy==2.0.30
 flask_marshmallow ==1.2.1
 marshmallow-sqlalchemy ==1.0.0
 kafka-python==2.0.2
+psycopg2-binary

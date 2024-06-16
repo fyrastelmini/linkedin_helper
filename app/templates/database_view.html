@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Jobs</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            {% for row in content %}
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ row[1] }}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">{{ row[2] }}</h6>
+                        <h6 class="card-subtitle mb-2 text-muted">{{ row[3] }}</h6>
+                        <p class="card-text">{{ row[5] }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

@@ -11,12 +11,11 @@ from flask import (
 import requests
 from werkzeug.exceptions import RequestEntityTooLarge
 from utils import message_handler
-from kafka import KafkaProducer, KafkaConsumer
+from kafka import KafkaProducer
 import json
 from kafka.errors import NoBrokersAvailable
 import time
-import threading
-
+import psycopg2
 
 # Initialize Kafka producer
 def create_producer():
@@ -30,44 +29,23 @@ def create_producer():
             print("Broker not available, retrying...")
             time.sleep(3)
 
-# Initialize Kafka consumer
-def create_consumer():
-    while True:
-        try:
-            consumer = KafkaConsumer('database_view',
-                                     bootstrap_servers='kafka:9092',
-                                     auto_offset_reset='earliest',
-                                     enable_auto_commit=True,
-                                     group_id='my-group',
-                                     value_deserializer=lambda x: json.loads(x.decode('utf-8')))
-            print("Consumer created successfully")
-            return consumer
-        except NoBrokersAvailable:
-            print("Broker not available, retrying...")
-            time.sleep(3)
-def consume_messages():
-    consumer = create_consumer()
-
-    for message in consumer:
-        topic = message.topic
-        with app.app_context():
-            if topic == 'database_view':
-                data=message.value
-                global last_db_view
-                last_db_view = data
-                consumer.commit()
-
-
-
-last_db_view = None
-
 app = Flask(__name__)
 
 
 # Set the maximum file size to 20MB
 app.config["MAX_CONTENT_LENGTH"] = 20 * 1024 * 1024
 
-
+def get_db_content():
+    conn = psycopg2.connect(
+        host="target_db",
+        database="target_db",
+        user="target_user",
+        password="target_password"
+    )
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM jobs_table_joined")  # replace "your_table" with your actual table name
+    rows = cur.fetchall()
+    return rows
 # Handle the RequestEntityTooLarge exception
 @app.errorhandler(RequestEntityTooLarge)
 def handle_file_size_too_large():
@@ -157,18 +135,11 @@ def update_data():
     
 
 
-@app.route("/view_db", methods=["GET"])
-def view_db():
-    global last_db_view
-    if last_db_view is None:
-        return Response("Data not ready", status=202)
-    else:
-        return jsonify(last_db_view)
+
 @app.route("/request_view", methods=["GET"])
 def request_view():
-    producer.send('get_view', {})
-    producer.flush()
-    return redirect(url_for('view_db'))
+    content = get_db_content()
+    return render_template('database_view.html', content=content)
 
 # Define the download_csv route
 @app.route("/download_csv")
@@ -178,6 +149,4 @@ def download_csv():
 
 if __name__ == "__main__":
     producer = create_producer()
-    consumer_thread = threading.Thread(target=consume_messages)
-    consumer_thread.start()
     app.run(host="0.0.0.0", port=8000, debug=True)

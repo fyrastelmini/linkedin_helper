@@ -14,8 +14,3 @@ def test_index(client):
 def test_main(client):
     response = client.get('/main')
     assert response.status_code == 200
-
-
-def test_view_db(client):
-    response = client.get('/view_db')
-    assert response.status_code == 202
