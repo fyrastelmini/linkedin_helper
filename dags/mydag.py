@@ -66,4 +66,4 @@ dbt_run = DbtRunOperator(
     dir='/dbt/',
     dag=dag,
 )
-create_table_task >> export_task >> import_task >> dbt_run
+create_table_task >> dbt_run >> export_task >> import_task
